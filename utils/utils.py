@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-import matplotlib.pyplot as plt
 import albumentations as albu
 
 
@@ -10,7 +9,6 @@ def global_dict():
 
 def origin_augmentation():
     return albu.Compose([albu.HorizontalFlip(p=0)])
-
 
 def mask_decode(label, shape=(1400, 2100)):
     # return a mask
@@ -33,7 +31,6 @@ def mask_decode(label, shape=(1400, 2100)):
         img[x: y] = 1
     return img.reshape(shape, order='F')
 
-
 def make_mask(df, image_id, shape=(1400, 2100)):
     # return 0,1,2,3 mask
     encoded_masks = df.loc[df['im_id'] == image_id, 'EncodedPixels']
@@ -44,14 +41,3 @@ def make_mask(df, image_id, shape=(1400, 2100)):
             mask = mask_decode(label)
             masks[:, :, i] = mask
     return masks
-
-def visualize(img, masks):
-    # tmp draw
-    font_size = 14
-    class_dict = global_dict()
-    f, ax = plt.subplots(1, 5, figsize=(20, 4))
-    ax[0].imshow(img)
-    for i in range(4):
-        ax[i + 1].imshow(masks[:, :, i])
-        ax[i + 1].set_title('Mask' + class_dict[i], fontsize=font_size)
-    plt.savefig('tmp.png', format='PNG')

@@ -72,7 +72,6 @@ if __name__ == '__main__':
     if is_gpu:
         net.cuda()
     print('unet built')
-    print(net)
     # training 
     criterion = BceDiceLoss(eps=1e-1) # make sure tp=1 at least
     optimizer = optim.Adam(net.parameters(), lr=initial_lr)
@@ -92,14 +91,8 @@ if __name__ == '__main__':
         for img, masks in bar:
             if is_gpu:
                 img, masks = img.cuda(), masks.cuda()
-            # debug
-            print('load data', img.shape, masks.shape)
             masks_pr = net(img)
-            # debug
-            print('unet calc', masks_pr.shape)
             loss = criterion(masks_pr, masks)
-            # debug
-            print('loss calc', loss.item())
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -128,3 +121,12 @@ if __name__ == '__main__':
             valid_loss_min = valid_loss
         scheduler.step(train_loss)
     # train and validate over
+    # record 
+    with open(model_id + '.rec', 'w') as fout:
+        fout.write('trainloss:\n')
+        fout.write(' '.join([str(x) for x in train_loss_list])) + '\n')
+        fout.write('validloss:\n')
+        fout.write(' '.join([str(x) for x in valid_loss_list])) + '\n')
+        fout.write('lr:\n')
+        fout.write(' '.join([str(x) for x in lr_list])) + '\n')
+
