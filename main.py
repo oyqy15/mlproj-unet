@@ -1,7 +1,7 @@
+import argparse
 import numpy as np
 import pandas as pd
 import torch
-import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
@@ -13,15 +13,31 @@ from model import Unet, DiceLoss, BceDiceLoss
 from utils import *
 
 
+def get_args():
+    parser = argparse.ArgumentParser(
+        description='Train the UNet on images and target masks',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        )
+    parser.add_argument('-mid', '--model-id', metavar='MI', type=str, default='test.pt', help='Load model from a .pt file', dest='model_id')
+    parser.add_argument('-e', '--max-epochs', metavar='E', type=int, default=32, help='Number of epochs', dest='max_epochs')
+    parser.add_argument('-lr', '--learning-rate', metavar='LR', type=float, default=0.005, help='Learning rate', dest='lr')
+    parser.add_argument('-bs', '--batch-size', metavar='B', type=int, default=8, help='Batch size', dest='batch_size')
+    return parser.parse_args()
+
 if __name__ == '__main__':
     # config
-    path = '/Users/ouyangqianyu/tsinghua/phd1/ML/proj/data'
-    model_id = 'test.pt'
-    batch_size = 8
+    args = get_args()
+    path = '../data'
+    model_id = args.model_id
+    initial_lr = args.lr
+    max_epochs = args.max_epochs
+    batch_size = args.batch_size
     num_workers = 0
     is_gpu = torch.cuda.is_available()
-    device = torch.device('cuda' if is_gpu else 'cpu')
     # config
+    print('args:' + str(args))
+    print('isgpu?:' + str(is_gpu))
+    # print config
     r = Readdata(path)
     train_set = Cloudset(
         r.train,
@@ -58,11 +74,9 @@ if __name__ == '__main__':
     print('unet built')
     print(net)
     # training 
-    initial_lr = 0.03
     criterion = BceDiceLoss(eps=1e-1) # make sure tp=1 at least
     optimizer = optim.Adam(net.parameters(), lr=initial_lr)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=2)
-    max_epochs = 32
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=2, cooldown=2)
     valid_loss_min = np.Inf
     # for plot
     train_loss_list = []
@@ -114,4 +128,3 @@ if __name__ == '__main__':
             valid_loss_min = valid_loss
         scheduler.step(train_loss)
     # train and validate over
-
