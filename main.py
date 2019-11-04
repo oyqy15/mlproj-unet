@@ -124,9 +124,9 @@ if __name__ == '__main__':
     # record 
     with open(model_id + '.rec', 'w') as fout:
         fout.write('trainloss:\n')
-        fout.write(' '.join([str(x) for x in train_loss_list])) + '\n')
+        fout.write(' '.join([str(x) for x in train_loss_list]) + '\n')
         fout.write('validloss:\n')
-        fout.write(' '.join([str(x) for x in valid_loss_list])) + '\n')
+        fout.write(' '.join([str(x) for x in valid_loss_list]) + '\n')
         fout.write('lr:\n')
-        fout.write(' '.join([str(x) for x in lr_list])) + '\n')
+        fout.write(' '.join([str(x) for x in lr_list]) + '\n')
 
