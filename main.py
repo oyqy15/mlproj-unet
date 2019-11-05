@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import pandas as pd
@@ -28,11 +29,10 @@ if __name__ == '__main__':
     # config
     args = get_args()
     path = '../data'
-    model_id = args.model_id
+    model_id = os.path.join('checkpoint', args.model_id)
     initial_lr = args.lr
     max_epochs = args.max_epochs
     batch_size = args.batch_size
-    num_workers = 0
     is_gpu = torch.cuda.is_available()
     # config
     print('args:' + str(args))
@@ -44,7 +44,8 @@ if __name__ == '__main__':
         'train',
         r.train_ids,
         r.train_fold,
-        training_augmentation()
+        training_augmentation_kaggle()
+        # training_augmentation()
         # try different augmentation here
     )
     valid_set = Cloudset(
@@ -52,19 +53,18 @@ if __name__ == '__main__':
         'valid',
         r.valid_ids,
         r.train_fold,
-        validation_augmentation()
+        validation_augmentation_kaggle()
+        # validation_augmentation()
         # try different augmentation here
     )
     train_loader = DataLoader(
         train_set,
         batch_size=batch_size,
-        num_workers=num_workers,
         shuffle=True
     )
     valid_loader = DataLoader(
         valid_set,
         batch_size=batch_size,
-        num_workers=num_workers,
         shuffle=False
     )
     print('training data loaded')
@@ -109,6 +109,7 @@ if __name__ == '__main__':
                 loss = criterion(masks_pr, masks)
                 valid_loss += loss.item() * img.shape[0]
                 v_bar.set_postfix(ordered_dict={'valid_loss': loss.item()})
+        # record & update
         train_loss = train_loss / train_loader.dataset.__len__()
         valid_loss = valid_loss / valid_loader.dataset.__len__()
         train_loss_list.append(train_loss)
@@ -119,7 +120,7 @@ if __name__ == '__main__':
             print('model update, saving...')
             torch.save(net.state_dict(), model_id)
             valid_loss_min = valid_loss
-        scheduler.step(train_loss)
+        scheduler.step(valid_loss)
     # train and validate over
     # record 
     with open(model_id + '.rec', 'w') as fout:
