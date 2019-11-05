@@ -74,7 +74,7 @@ if __name__ == '__main__':
                     answer_label.append(get_answer(mask, thresholds[i]))
                 image_uid += 1
     # submission
-    submit_file = os.path.join('checkpoint', model_id + '.csv')
+    submit_file = model_id + '.csv'
     sub = test_set.df
     sub['EncodedPixels'] = answer_label
     sub.to_csv(submit_file, columns=answer_index, index=False)
