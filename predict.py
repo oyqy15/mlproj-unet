@@ -4,6 +4,7 @@ import torch
 import os
 import argparse
 from torch.utils.data import DataLoader
+from tqdm import tqdm as tq
 
 from dataset import Cloudset, Readdata
 from model import Unet
@@ -27,6 +28,7 @@ if __name__ == '__main__':
     args = get_args()
     path = '../data'
     model_id = os.path.join('checkpoint', args.model_id)
+    thresholds = [args.threshold0, args.threshold1, args.threshold2, args.threshold3]
     batch_size = 8
     is_gpu = torch.cuda.is_available()
     device = torch.device('cuda' if is_gpu else 'cpu')
@@ -53,6 +55,27 @@ if __name__ == '__main__':
         net.cuda()
     net.load_state_dict(torch.load(model_id, map_location=device))
     print('model loaded')
-    
-    
+    # prepare
+    ans_dict = global_dict()
+    image_uid = 0
+    answer_label = []
+    answer_index = ['Image_Label', 'EncodedPixels']
+    # calculation
+    t_bar = tq(test_loader)
+    net.eval()
+    with torch.no_grad():
+        for img, masks in t_bar:
+            if is_gpu:
+                img = img.cuda()
+            masks_pr = net(img).cpu().detach().numpy()
+            for batch in masks_pr:
+                for i, mask in enumerate(batch):
+                    # image_uid, i
+                    answer_label.append(get_answer(mask, thresholds[i]))
+                image_uid += 1
+    # submission
+    submit_file = os.path.join('checkpoint', model_id + '.csv')
+    sub = test_set.df
+    sub['EncodedPixels'] = answer_label
+    sub.to_csv(submit_file, columns=answer_index, index=False)
 

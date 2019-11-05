@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import pandas as pd
 
@@ -9,6 +10,26 @@ def global_dict():
 
 def origin_augmentation():
     return albu.Compose([albu.HorizontalFlip(p=0)])
+
+def mask_encode(mask, shape=(350, 525)):
+    s = []
+    length = 0
+    y = np.concatenate([[0], mask.T.flatten(), [0]])
+    for i, x in enumerate(y):
+        if x == 1:
+            if y[i - 1] == 0:
+                s.append(i)
+                length = 1
+            else:
+                length += 1
+        else:
+            if length > 0:
+                s.append(length)
+            length = 0
+    if len(s) == 0:
+        return ''
+    else:
+        return ' '.join([str(x) for x in s])
 
 def mask_decode(label, shape=(1400, 2100)):
     # return a mask
@@ -41,3 +62,15 @@ def make_mask(df, image_id, shape=(1400, 2100)):
             mask = mask_decode(label)
             masks[:, :, i] = mask
     return masks
+
+def resize_f(x):
+    if x.shape != (350, 525):
+        x = cv2.resize(x, (525, 350), interpolation=cv2.INTER_LINEAR)
+    return x
+
+def get_answer(x, threshold):
+    x = resize_f(x)
+    mask = cv2.threshold(x, threshold, 1, cv2.THRESH_BINARY)[1].astype('int')
+    return mask_encode(mask)
+    
+
