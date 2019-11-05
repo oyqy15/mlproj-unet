@@ -42,7 +42,7 @@ if __name__ == '__main__':
         'test',
         r.test_ids,
         r.test_fold,
-        validation_augmentation()
+        validation_augmentation_kaggle()
     )
     test_loader = DataLoader(
         test_set,
