@@ -59,7 +59,6 @@ if __name__ == '__main__':
             masks_pr = net(img).cpu().detach().numpy() #[batch, 4, 320, 640]
             for batch in masks_pr:
                 res.append([resize_f(mask) for mask in batch])
-            break
              
     res = np.asarray(res, dtype=np.float32)
     print(res.shape)

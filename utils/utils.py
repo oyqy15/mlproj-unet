@@ -5,8 +5,8 @@ import pandas as pd
 
 import albumentations as albu
 
-def create_valid_dir(model_id):
-    result_fold = os.path.join('checkpoint', 'valid', model_id)
+def create_valid_dir(model_id, kind='valid'):
+    result_fold = os.path.join('checkpoint', kind, model_id)
     if not os.path.exists(result_fold):
         os.makedirs(result_fold)
     return result_fold

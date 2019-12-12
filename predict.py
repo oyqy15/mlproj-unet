@@ -17,10 +17,6 @@ def get_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
         )
     parser.add_argument('-mid', '--model-id', metavar='MI', type=str, default='test.pt', help='Load model from a .pt file', dest='model_id')
-    parser.add_argument('-t0', '--threshold0', metavar='T', type=float, default=0.5, help='the cell > threshold will be masked (Fish)', dest='threshold0')
-    parser.add_argument('-t1', '--threshold1', metavar='T', type=float, default=0.5, help='the cell > threshold will be masked (Flower)', dest='threshold1')
-    parser.add_argument('-t2', '--threshold2', metavar='T', type=float, default=0.5, help='the cell > threshold will be masked (Gravel)', dest='threshold2')
-    parser.add_argument('-t3', '--threshold3', metavar='T', type=float, default=0.5, help='the cell > threshold will be masked (Sugar)', dest='threshold3')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -28,7 +24,6 @@ if __name__ == '__main__':
     args = get_args()
     path = '../data'
     model_id = os.path.join('checkpoint', args.model_id)
-    thresholds = [args.threshold0, args.threshold1, args.threshold2, args.threshold3]
     batch_size = 8
     is_gpu = torch.cuda.is_available()
     device = torch.device('cuda' if is_gpu else 'cpu')
@@ -55,27 +50,20 @@ if __name__ == '__main__':
         net.cuda()
     net.load_state_dict(torch.load(model_id, map_location=device))
     print('model loaded')
-    # prepare
-    ans_dict = global_dict()
-    image_uid = 0
-    answer_label = []
-    answer_index = ['Image_Label', 'EncodedPixels']
     # calculation
     t_bar = tq(test_loader)
     net.eval()
+    res = []
     with torch.no_grad():
         for img, masks in t_bar:
             if is_gpu:
                 img = img.cuda()
-            masks_pr = net(img).cpu().detach().numpy()
+            masks_pr = net(img).cpu().detach().numpy() #[batch, 4, 320, 640]
             for batch in masks_pr:
-                for i, mask in enumerate(batch):
-                    # image_uid, i
-                    answer_label.append(get_answer(mask, thresholds[i]))
-                image_uid += 1
-    # submission
-    submit_file = model_id + '.csv'
-    sub = test_set.df
-    sub['EncodedPixels'] = answer_label
-    sub.to_csv(submit_file, columns=answer_index, index=False)
+                res.append([resize_f(mask) for mask in batch])
+            # break
+            # debug
+        
+    result_fold = create_valid_dir(args.model_id, 'test')
+    np.save(os.path.join(result_fold, 'masks'), res)
 

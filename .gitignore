@@ -6,4 +6,4 @@
 **/*.csv
 checkpoint/valid/**
 **/.ipynb*/
-
+vis/adjust.ipynb
