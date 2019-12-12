@@ -4,7 +4,6 @@
 **/*.pt
 **/*.pt.rec
 **/*.csv
-**/*.ipynb
 checkpoint/valid/**
 **/.ipynb*/
 
