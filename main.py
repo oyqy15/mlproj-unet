@@ -73,7 +73,7 @@ if __name__ == '__main__':
         net.cuda()
     print('unet built')
     # training 
-    criterion = BceDiceLoss(eps=1e-1) # make sure tp=1 at least
+    criterion = BceDiceLoss(eps=1e-1) # make sure tp=eps at least
     optimizer = optim.Adam(net.parameters(), lr=initial_lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=2, cooldown=2)
     valid_loss_min = np.Inf
@@ -91,9 +91,9 @@ if __name__ == '__main__':
         for img, masks in bar:
             if is_gpu:
                 img, masks = img.cuda(), masks.cuda()
+            optimizer.zero_grad()
             masks_pr = net(img)
             loss = criterion(masks_pr, masks)
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             train_loss += loss.item() * img.shape[0]

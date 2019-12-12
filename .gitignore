@@ -3,3 +3,6 @@
 **/.DS_Store
 **/*.pt
 **/*.pt.rec
+**/*.csv
+**/*.ipynb
+checkpoint/valid/**
