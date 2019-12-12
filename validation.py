@@ -26,10 +26,9 @@ if __name__ == '__main__':
     print('args:' + str(args))
     print('isgpu?:' + str(is_gpu))
 
-    result_fold = os.path.join('checkpoint', 'valid', args.model_id)
-    if not os.path.exists(result_fold):
-        os.makedirs(result_fold)
-    
+    result_fold = create_valid_dir(args.model_id)
+    valid_ids = np.load(os.path.join(result_fold, 'ids.npy'))
+
     net = Unet(3, 4).float()
     if is_gpu:
         net = net.cuda()
@@ -37,7 +36,7 @@ if __name__ == '__main__':
     valid_set = Cloudset(
         r.train,
         'valid',
-        r.valid_ids,
+        valid_ids,
         r.train_fold,
         validation_augmentation_kaggle()
     )
@@ -57,18 +56,14 @@ if __name__ == '__main__':
         for img, masks in v_bar:
             if is_gpu:
                 img = img.cuda()
-            masks_pr = net(img).cpu().detach().numpy()
-            for batch in  masks_pr:
-                res.append(batch)
+            masks_pr = net(img).cpu().detach().numpy() #[batch, 4, 320, 640]
+            for batch in masks_pr:
+                res.append([resize_f(mask) for mask in batch])
+            break
              
     res = np.asarray(res, dtype=np.float32)
     print(res.shape)
-    res2 = valid_set.ids
-    print(len(res2))
-
     np.save(os.path.join(result_fold, 'masks'), res)
-    with open(os.path.join(result_fold, 'ids'), 'w') as fout:
-        fout.write('\n'.join(res2))  
 
     
 

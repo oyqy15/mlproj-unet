@@ -131,3 +131,5 @@ if __name__ == '__main__':
         fout.write('lr:\n')
         fout.write(' '.join([str(x) for x in lr_list]) + '\n')
 
+    result_fold = create_valid_dir(args.model_id)
+    np.save(os.path.join(result_fold, 'ids'), valid_set.ids)

@@ -1,9 +1,15 @@
+import os
 import cv2
 import numpy as np
 import pandas as pd
 
 import albumentations as albu
 
+def create_valid_dir(model_id):
+    result_fold = os.path.join('checkpoint', 'valid', model_id)
+    if not os.path.exists(result_fold):
+        os.makedirs(result_fold)
+    return result_fold
 
 def global_dict():
     return {0: 'Fish', 1: 'Flower', 2: 'Gravel', 3: 'Sugar'}
