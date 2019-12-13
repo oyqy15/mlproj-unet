@@ -27,7 +27,7 @@ if __name__ == '__main__':
     print('isgpu?:' + str(is_gpu))
 
     result_fold = create_valid_dir(args.model_id)
-    valid_ids = np.load(os.path.join(result_fold, 'ids.npy'))
+    valid_ids = np.load(os.path.join(result_fold, 'ids.npy'), allow_pickle=True)
 
     net = Unet(3, 4).float()
     if is_gpu:

@@ -10,7 +10,7 @@ from torch import optim
 from tqdm import tqdm as tq
 
 from dataset import Readdata, Cloudset
-from model import Unet, DiceLoss, BceDiceLoss
+from model import Res2Unet, Unet, DiceLoss, BceDiceLoss
 from utils import *
 
 
@@ -23,6 +23,7 @@ def get_args():
     parser.add_argument('-e', '--max-epochs', metavar='E', type=int, default=32, help='Number of epochs', dest='max_epochs')
     parser.add_argument('-lr', '--learning-rate', metavar='LR', type=float, default=0.005, help='Learning rate', dest='lr')
     parser.add_argument('-bs', '--batch-size', metavar='B', type=int, default=8, help='Batch size', dest='batch_size')
+    parser.add_argument('-res', '--resnet', type=bool, default=False, help='use resnet or not', dest='resnet')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -34,6 +35,7 @@ if __name__ == '__main__':
     max_epochs = args.max_epochs
     batch_size = args.batch_size
     is_gpu = torch.cuda.is_available()
+    is_resnet = args.resnet
     # config
     print('args:' + str(args))
     print('isgpu?:' + str(is_gpu))
@@ -68,7 +70,12 @@ if __name__ == '__main__':
         shuffle=False
     )
     print('training data loaded')
-    net = Unet(c_in=3, c_out=4).float()
+    if not is_resnet:
+        print('vanila unet')
+        net = Unet(c_in=3, c_out=4).float()
+    else:
+        print('resnet 2 unet')
+        net = Res2Unet(c_in=3, c_out=4).float()
     if is_gpu:
         net.cuda()
     print('unet built')
@@ -132,4 +139,4 @@ if __name__ == '__main__':
         fout.write(' '.join([str(x) for x in lr_list]) + '\n')
 
     result_fold = create_valid_dir(args.model_id)
-    np.save(os.path.join(result_fold, 'ids'), valid_set.ids)
+    np.save(os.path.join(result_fold, 'ids'), valid_set.ids, allow_pickle=True)
