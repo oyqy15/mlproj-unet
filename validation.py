@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 import argparse
-from model import Unet
+from model import Res2Unet, Unet
 from dataset import Cloudset, Readdata
 from tqdm import tqdm as tq
 from utils import *
@@ -14,6 +14,7 @@ def get_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
         )
     parser.add_argument('-mid', '--model-id', metavar='MI', type=str, default='test.pt', help='Load model from a .pt file', dest='model_id')
+    parser.add_argument('-res', '--resnet', type=bool, default=False, help='use resnet or not', dest='resnet')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -22,6 +23,7 @@ if __name__ == '__main__':
     model_id = os.path.join('checkpoint', args.model_id)
     batch_size = 8
     is_gpu = torch.cuda.is_available()
+    is_resnet = args.resnet
     device = torch.device('cuda' if is_gpu else 'cpu')
     print('args:' + str(args))
     print('isgpu?:' + str(is_gpu))
@@ -29,7 +31,12 @@ if __name__ == '__main__':
     result_fold = create_valid_dir(args.model_id)
     valid_ids = np.load(os.path.join(result_fold, 'ids.npy'), allow_pickle=True)
 
-    net = Unet(3, 4).float()
+    if not is_resnet:
+        print('vanila unet')
+        net = Unet(c_in=3, c_out=4).float()
+    else:
+        print('resnet 2 unet')
+        net = Res2Unet(c_in=3, c_out=4).float()
     if is_gpu:
         net = net.cuda()
     r = Readdata(path)

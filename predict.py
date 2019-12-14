@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm as tq
 
 from dataset import Cloudset, Readdata
-from model import Unet
+from model import Res2Unet, Unet
 from utils import *
 
 
@@ -17,6 +17,7 @@ def get_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
         )
     parser.add_argument('-mid', '--model-id', metavar='MI', type=str, default='test.pt', help='Load model from a .pt file', dest='model_id')
+    parser.add_argument('-res', '--resnet', type=bool, default=False, help='use resnet or not', dest='resnet')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -26,6 +27,7 @@ if __name__ == '__main__':
     model_id = os.path.join('checkpoint', args.model_id)
     batch_size = 8
     is_gpu = torch.cuda.is_available()
+    is_resnet = args.resnet
     device = torch.device('cuda' if is_gpu else 'cpu')
     # config
     print('args:' + str(args))
@@ -45,7 +47,12 @@ if __name__ == '__main__':
         shuffle=False
     )
     print('testing data loaded')
-    net = Unet(3, 4).float()
+    if not is_resnet:
+        print('vanila unet')
+        net = Unet(c_in=3, c_out=4).float()
+    else:
+        print('resnet 2 unet')
+        net = Res2Unet(c_in=3, c_out=4).float()
     if is_gpu:
         net.cuda()
     net.load_state_dict(torch.load(model_id, map_location=device))
