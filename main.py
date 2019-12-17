@@ -10,7 +10,7 @@ from torch import optim
 from tqdm import tqdm as tq
 
 from dataset import Readdata, Cloudset
-from model import Res2Unet, Unet, DiceLoss, BceDiceLoss
+from model import Res2Unet, Unet, DiceLoss, BceDiceLoss, RAdam
 from utils import *
 
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     print('unet built')
     # training 
     criterion = BceDiceLoss(eps=1e-1) # make sure tp=eps at least
-    optimizer = optim.Adam(net.parameters(), lr=initial_lr)
+    optimizer = RAdam(net.parameters(), lr=initial_lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=2, cooldown=2)
     valid_loss_min = np.Inf
     # for plot
