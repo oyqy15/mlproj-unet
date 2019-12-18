@@ -22,6 +22,21 @@ class DiceLoss(nn.Module):
             x = (x > self.threshold).float()
         return 1 - dice_co(x, y, self.eps)
 
+class GDiceLoss(nn.Module):
+    def __init__(self, eps=1e-7):
+        super(GDiceLoss, self).__init__()
+        self.eps = eps
+    def forward(self, x, y):
+        # x: from unet
+        # y: from training data
+        # (bs, c, h, w)
+
+        w = torch.sum(y, [0, 2, 3])
+        w = 1 / (w * w  + self.eps)
+        up = torch.sum(w * torch.sum(x * y, [0, 2, 3]))
+        dn = torch.sum(x, [0, 2, 3]) + torch.sum(y, [0, 2, 3])
+        dn = torch.sum(w * dn)
+        return 1 - 2 * (up + self.eps) / (dn + self.eps) 
 
 class BceDiceLoss(DiceLoss):
     def __init__(self, lambda_bce=1.0, lambda_dice=1.0, eps=1e-7, threshold=None):

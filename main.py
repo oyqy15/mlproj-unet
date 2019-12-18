@@ -10,7 +10,7 @@ from torch import optim
 from tqdm import tqdm as tq
 
 from dataset import Readdata, Cloudset
-from model import Res2Unet, Unet, DiceLoss, BceDiceLoss, RAdam
+from model import Res2Unet, Unet, DiceLoss, BceDiceLoss, RAdam, GDiceLoss
 from utils import *
 
 
@@ -24,6 +24,7 @@ def get_args():
     parser.add_argument('-lr', '--learning-rate', metavar='LR', type=float, default=0.005, help='Learning rate', dest='lr')
     parser.add_argument('-bs', '--batch-size', metavar='B', type=int, default=8, help='Batch size', dest='batch_size')
     parser.add_argument('-res', '--resnet', type=bool, default=False, help='use resnet or not', dest='resnet')
+    parser.add_argument('-lo', '--loss', metavar='L', type=str, default='bce', help='type of loss', dest='loss')
     return parser.parse_args()
 
 if __name__ == '__main__':
@@ -36,6 +37,7 @@ if __name__ == '__main__':
     batch_size = args.batch_size
     is_gpu = torch.cuda.is_available()
     is_resnet = args.resnet
+    loss_kind = args.loss
     # config
     print('args:' + str(args))
     print('isgpu?:' + str(is_gpu))
@@ -80,7 +82,13 @@ if __name__ == '__main__':
         net.cuda()
     print('unet built')
     # training 
-    criterion = BceDiceLoss(eps=1e-1) # make sure tp=eps at least
+    criterion = None
+    if loss_kind == 'bce':
+        print('use loss bce')
+        criterion = BceDiceLoss(eps=1e-1) # make sure tp=eps at least
+    else:
+        print('use loss gdl')
+        criterion = GDiceLoss(eps = 1e-3)
     optimizer = RAdam(net.parameters(), lr=initial_lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=2, cooldown=2)
     valid_loss_min = np.Inf
