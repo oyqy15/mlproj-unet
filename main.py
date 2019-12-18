@@ -88,7 +88,7 @@ if __name__ == '__main__':
         criterion = BceDiceLoss(eps=1e-1) # make sure tp=eps at least
     else:
         print('use loss gdl')
-        criterion = GDiceLoss(eps = 1e-3)
+        criterion = GDiceLoss()
     optimizer = RAdam(net.parameters(), lr=initial_lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=2, cooldown=2)
     valid_loss_min = np.Inf

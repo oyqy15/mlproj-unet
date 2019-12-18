@@ -31,12 +31,12 @@ class GDiceLoss(nn.Module):
         # y: from training data
         # (bs, c, h, w)
 
-        w = torch.sum(y, [0, 2, 3])
-        w = 1 / (w * w  + self.eps)
-        up = torch.sum(w * torch.sum(x * y, [0, 2, 3]))
-        dn = torch.sum(x, [0, 2, 3]) + torch.sum(y, [0, 2, 3])
+        w = torch.sum(y, [0, 2, 3]) + 1
+        w = 1 / (w * w)
+        up = torch.sum(w * (torch.sum(x * y, [0, 2, 3]) + 1))
+        dn = torch.sum(x, [0, 2, 3]) + torch.sum(y, [0, 2, 3]) + 2
         dn = torch.sum(w * dn)
-        return 1 - 2 * (up + self.eps) / (dn + self.eps) 
+        return 1 - (2 * up) / (dn) 
 
 class BceDiceLoss(DiceLoss):
     def __init__(self, lambda_bce=1.0, lambda_dice=1.0, eps=1e-7, threshold=None):
