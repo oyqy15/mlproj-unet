@@ -17,25 +17,12 @@ def global_dict():
 def origin_augmentation():
     return albu.Compose([albu.HorizontalFlip(p=0)])
 
-def mask_encode(mask, shape=(350, 525)):
-    s = []
-    length = 0
-    y = np.concatenate([[0], mask.T.flatten(), [0]])
-    for i, x in enumerate(y):
-        if x == 1:
-            if y[i - 1] == 0:
-                s.append(i)
-                length = 1
-            else:
-                length += 1
-        else:
-            if length > 0:
-                s.append(length)
-            length = 0
-    if len(s) == 0:
-        return ''
-    else:
-        return ' '.join([str(x) for x in s])
+def mask_encode(img, shape=(350, 525)):
+    pixels = img.T.flatten()
+    pixels = np.concatenate([[0], pixels, [0]])
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 1
+    runs[1::2] -= runs[::2]
+    return " ".join(str(x) for x in runs)
 
 def mask_decode(label, shape=(1400, 2100)):
     # return a mask
