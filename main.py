@@ -79,7 +79,8 @@ if __name__ == '__main__':
         print('resnet 2 unet')
         net = Res2Unet(c_in=3, c_out=4).float()
     if is_gpu:
-        net.cuda()
+        # net.cuda()
+        net = nn.DataParallel(net)
     print('unet built')
     # training 
     criterion = None
