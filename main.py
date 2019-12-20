@@ -81,6 +81,7 @@ if __name__ == '__main__':
     if is_gpu:
         # net.cuda()
         net = nn.DataParallel(net)
+        net.cuda()
     print('unet built')
     # training 
     criterion = None
